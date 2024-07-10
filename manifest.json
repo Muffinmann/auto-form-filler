@@ -35,7 +35,7 @@
         "*://localhost/*"
       ],
       "js": [
-        "clickRecorder.js"
+        "eventRecorder.js"
       ],
       "run_at": "document_start"
     }

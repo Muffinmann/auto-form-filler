@@ -51,9 +51,9 @@ document.getElementById('submitButton').addEventListener('click', () => {
 
 
 
-document.getElementById('viewClicksButton').addEventListener('click', () => {
-  chrome.storage.local.get('clickData', (data) => {
-    const clickData = data.clickData || [];
-    console.log(JSON.stringify(clickData, null, 2));
+document.getElementById('viewEvents').addEventListener('click', () => {
+  chrome.storage.local.get('userEvents', (data) => {
+    const userEvents = data.userEvents || [];
+    console.log(JSON.stringify(userEvents, null, 2));
   });
 });

@@ -21,5 +21,11 @@ document.addEventListener('click', (event) => {
 });
 
 document.addEventListener('input', (event) => {
+  console.log('captcha input')
   recordEvent(event, 'input');
+});
+
+document.addEventListener('change', (event) => {
+  console.log('captcha input')
+  recordEvent(event, 'change');
 });
