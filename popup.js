@@ -57,3 +57,35 @@ document.getElementById('viewEvents').addEventListener('click', () => {
     console.log(JSON.stringify(userEvents, null, 2));
   });
 });
+
+
+document.getElementById('startRecordButton').addEventListener('click', () => {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    const tabId = tabs[0].id;
+    chrome.scripting.executeScript({
+      target: { tabId: tabId },
+      function: toggleRecording,
+      args: [true]
+    });
+  });
+});
+document.getElementById('stopRecordButton').addEventListener('click', () => {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    const tabId = tabs[0].id;
+    chrome.scripting.executeScript({
+      target: { tabId: tabId },
+      function: toggleRecording,
+      args: [false]
+    });
+  });
+});
+
+function toggleRecording(enable) {
+  chrome.storage.local.set({ recording: enable }, () => {
+    if (enable) {
+      alert('Recording started');
+    } else {
+      alert('Recording stopped');
+    }
+  });
+}

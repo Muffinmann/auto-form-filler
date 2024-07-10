@@ -1,19 +1,23 @@
 function recordEvent(event, type) {
-  const element = event.target;
-  const elementDetails = {
-    eventType: type,
-    tagName: element.tagName,
-    id: element.id,
-    className: element.className,
-    name: element.name,
-    value: element.value || null,
-    innerText: element.innerText,
-    href: element.href || null,
-    src: element.src || null,
-    timeStamp: event.timeStamp
-  };
+  chrome.storage.local.get('recording', (data) => {
+    if (data.recording) {
+      const element = event.target;
+      const elementDetails = {
+        eventType: type,
+        tagName: element.tagName,
+        id: element.id,
+        className: element.className,
+        name: element.name,
+        value: element.value || null,
+        innerText: element.innerText,
+        href: element.href || null,
+        src: element.src || null,
+        timeStamp: event.timeStamp
+      };
 
-  chrome.runtime.sendMessage({ action: 'recordEvent', elementDetails });
+      chrome.runtime.sendMessage({ action: 'recordEvent', elementDetails });
+    }
+  })
 }
 
 document.addEventListener('click', (event) => {
