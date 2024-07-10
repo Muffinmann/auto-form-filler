@@ -1,0 +1,43 @@
+{
+  "manifest_version": 3,
+  "name": "Auto Form Filler",
+  "description": "Fill form input based on preset key-value pairs",
+  "permissions": [
+    "tabs",
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "*://localhost/*"
+  ],
+  "version": "1.0",
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "icon.png",
+    "default_title": "Auto Form Filler"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://localhost/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "*://localhost/*"
+      ],
+      "js": [
+        "clickRecorder.js"
+      ],
+      "run_at": "document_start"
+    }
+  ]
+}
