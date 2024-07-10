@@ -9,11 +9,11 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.action === 'recordClick') {
-    chrome.storage.local.get('clickData', (data) => {
-      const clickData = data.clickData || [];
-      clickData.push(message.elementDetails);
-      chrome.storage.local.set({ clickData });
+  if (message.action === 'recordEvent') {
+    chrome.storage.local.get('userEvents', (data) => {
+      const userEvents = data.userEvents || [];
+      userEvents.push(message.elementDetails);
+      chrome.storage.local.set({ userEvents });
     });
   }
 
