@@ -3,6 +3,7 @@ function recordEvent(event, type) {
     if (data.recording) {
       const element = event.target;
       const elementDetails = {
+        host: window.location.href,
         eventType: type,
         tagName: element.tagName,
         id: element.id,
