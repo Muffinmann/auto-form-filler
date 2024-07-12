@@ -1,16 +1,39 @@
-document.getElementById('saveButton').addEventListener('click', () => {
+function resolveWildcardUrl(href, target) {
+  const scheme = href.slice(0, href.indexOf(":") + 3)
+  const stack = href.slice(href.indexOf(":") + 3).split("/")
+  const targetStack = target.split("/")
+  const resolved = []
+
+  if (targetStack.length === 0) {
+    return ""
+  }
+
+  while (targetStack.length) {
+    if (targetStack[0] === stack[0]) {
+      resolved.push(stack.shift())
+      targetStack.shift()
+    } else if (targetStack[0] === "*") {
+      if (stack.length === targetStack.length) {
+        targetStack.shift()
+      }
+      resolved.push(stack.shift())
+    } else {
+      resolved.push(targetStack.shift())
+
+    }
+  }
+  return scheme.concat(resolved.join("/"))
+}
+
+document.getElementById('saveButton').addEventListener('click', async () => {
   const jsonInput = document.getElementById('jsonInput').value;
   try {
-    console.log({chrome, jsonInput})
-    const url = window.location.href
+    const href = (await getActiveTab()).url
     const data = JSON.parse(jsonInput);
     const userData = Object.fromEntries(
       Object.entries(data).map(([url, kvPairs]) => {
-        if (url.indexOf('*')> -1) {
-          const segments = url.split('*')
-          
-          // replace wildcard segment with current url
-
+        if (url.indexOf('*') > -1) {
+          return [resolveWildcardUrl(href, url), kvPairs]
         }
         return [url, kvPairs]
       })
@@ -31,7 +54,7 @@ function getActiveTab() {
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         res(tabs[0])
       })
-    } catch(e) {
+    } catch (e) {
       rej(e)
     }
   })
@@ -43,36 +66,41 @@ function getStorageData(key) {
       chrome.storage.local.get(key, (data) => {
         res(data[key])
       })
-    } catch(e) {
+    } catch (e) {
       rej(e)
     }
   })
 }
 
 async function navigateAndFill(urls) {
-  const activeTab = await getActiveTab()
-  const url = urls.shift()
-  if (url) {
-    chrome.tabs.update(activeTab.id, { url: url }, () => {
-      chrome.tabs.onUpdated.addListener(function listener(tabId, changeInfo) {
-        if (changeInfo.status === 'complete') {
-          chrome.scripting.executeScript({
-            target: { tabId: tabId },
-            files: ['content.js']
-          });
-          chrome.tabs.onUpdated.removeListener(listener);
-          navigateAndFill(urls)
-        } 
+  try {
+    const activeTab = await getActiveTab()
+    const url = urls.shift()
+    console.log({ activeTab, url })
+    if (url) {
+      chrome.tabs.update(activeTab.id, { url: url }, (updatedTab) => {
+        chrome.tabs.onUpdated.addListener(function listener(tabId, changeInfo) {
+          if (tabId === activeTab.id && changeInfo.status === 'complete') {
+            chrome.scripting.executeScript({
+              target: { tabId: tabId },
+              files: ['content.js']
+            });
+            chrome.tabs.onUpdated.removeListener(listener);
+            navigateAndFill(urls)
+          }
+        });
       });
-    });
+    }
+  } catch (e) {
+    console.error(`An error occurred during navigation and fill: ${e}`)
   }
-  
+
 }
 
 document.getElementById('submitButton').addEventListener('click', async () => {
   const userData = await getStorageData('userData')
   if (userData) {
-    const urls = Object.keys(data.userData);
+    const urls = Object.keys(userData);
     navigateAndFill(urls)
   } else {
     alert('No data to submit!')

@@ -9,7 +9,7 @@
     "storage"
   ],
   "host_permissions": [
-    "*://localhost/*"
+    "<all_urls>"
   ],
   "version": "1.0",
   "action": {
@@ -23,7 +23,7 @@
   "content_scripts": [
     {
       "matches": [
-        "*://localhost/*"
+        "<all_urls>"
       ],
       "js": [
         "content.js"
@@ -32,7 +32,7 @@
     },
     {
       "matches": [
-        "*://localhost/*"
+        "<all_urls>"
       ],
       "js": [
         "eventRecorder.js"
