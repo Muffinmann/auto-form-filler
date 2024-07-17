@@ -35,11 +35,9 @@ chrome.storage.local.get('userData', async (data) => {
         } else {
           if (input.type === 'radio' && input.value === value) {
             nativeInputCheckedSetter.call(input, true)
-          } else if (input.type === 'number') {
-            nativeInputValueSetter.call(input, Number(value))
-          } else if (input.type === 'text') {
+          } else {
             nativeInputValueSetter.call(input, value)
-          }
+          } 
         }
 
         const event = new Event('input', { bubbles: true });

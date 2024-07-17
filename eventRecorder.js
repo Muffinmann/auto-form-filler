@@ -13,7 +13,9 @@ function recordEvent(event, type) {
         innerText: element.innerText,
         href: element.href || null,
         src: element.src || null,
-        timeStamp: event.timeStamp
+        timeStamp: event.timeStamp,
+        inputType: element.type,
+        target: {...element}
       };
 
       chrome.runtime.sendMessage({ action: 'recordEvent', elementDetails });

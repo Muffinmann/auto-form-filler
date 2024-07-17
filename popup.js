@@ -25,6 +25,8 @@ function resolveWildcardUrl(href, target) {
   return scheme.concat(resolved.join("/"))
 }
 
+
+
 document.getElementById('saveButton').addEventListener('click', async () => {
   const jsonInput = document.getElementById('jsonInput').value;
   try {
@@ -109,11 +111,9 @@ document.getElementById('submitButton').addEventListener('click', async () => {
 
 
 
-document.getElementById('viewEvents').addEventListener('click', () => {
-  chrome.storage.local.get('userEvents', (data) => {
-    const userEvents = data.userEvents || [];
-    console.log(JSON.stringify(userEvents, null, 2));
-  });
+document.getElementById('viewEvents').addEventListener('click', async () => {
+  const userEvents = await getStorageData('userEvents') || []
+  console.log(JSON.stringify(userEvents, null, 2));
 });
 
 
@@ -147,3 +147,76 @@ function toggleRecording(enable) {
     }
   });
 }
+
+
+document.getElementById('generateValues').addEventListener('click', async () => {
+  const userEvents = await getStorageData('userEvents') || []
+  const changeEvents = userEvents.filter((e) => e.eventType === 'change')
+  const urlWithKV = changeEvents.reduce((prev, crr) => {
+    const url = crr.host
+    const value = crr.value
+    const name = crr.name
+    if (!(url in prev)) {
+      prev[url] = {}
+    }
+    prev[url][name] = value
+
+    return prev
+  }, {})
+  chrome.storage.local.set({
+    userData: urlWithKV
+  })
+  init()
+  console.log({urlWithKV})
+
+});
+
+document.getElementById('reset').addEventListener('click', () => {
+  chrome.storage.local.clear()
+  alert('Storage cleared!')
+});
+
+
+function isInPopup () {
+  return (typeof chrome != undefined && chrome.extension) ?
+    chrome.extension.getViews({ type: "popup" }).length > 0 : null;
+}
+
+function applyMask(url, mask) {
+  // const scheme = url.slice(0, url.indexOf(':') + 3)
+  const urlSegments = url.slice(url.indexOf(':') + 3).slice('/')
+  const maskSegments = url.slice('/')
+  const res = []
+
+  while (maskSegments.length) {
+    if (maskSegments[0] === '<any>') {
+      res.push(urlSegments.shift())
+      maskSegments.shift()
+      continue
+    }
+    if (maskSegments[0] === '*') {
+      res.push(maskSegments.shift())
+    }
+
+  }
+}
+async function init() {
+  console.log('pop up open: ', isInPopup())
+  const textarea = document.getElementById('jsonInput');
+  const userData = await getStorageData('userData')
+  const hostUrl = 'main.otd.dev.intern/anamneses/5abdbdfa-ef9f-467f-98a3-ca33bb9317e9/lengths-to-ground'
+  const urlMask = '*/*/*/<any>'
+
+  console.log({userData})
+  if (userData) {
+    const maskedData = Object.fromEntries(
+      Object.entries(userData).map((url, kv) => {
+        return [applyMask(url, urlMask), kv]
+      })
+    )
+    textarea.innerText = JSON.stringify(userData, null, 2)
+  }
+  
+}
+
+init()
