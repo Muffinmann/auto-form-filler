@@ -1,0 +1,12 @@
+{
+  "*/home": {
+    "test-field-1": 100,
+    "test-field-2": 200
+  },
+  "*/about": {
+    "test-field-3": 300
+  },
+  "*/dashboard": {
+    "test-field-4": 400
+  }
+}

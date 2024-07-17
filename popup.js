@@ -1,6 +1,6 @@
 function resolveWildcardUrl(href, target) {
   const scheme = href.slice(0, href.indexOf(":") + 3)
-  const stack = href.slice(href.indexOf(":") + 3).split("/")
+  const sourceStack = href.slice(href.indexOf(":") + 3).split("/")
   const targetStack = target.split("/")
   const resolved = []
 
@@ -9,17 +9,12 @@ function resolveWildcardUrl(href, target) {
   }
 
   while (targetStack.length) {
-    if (targetStack[0] === stack[0]) {
-      resolved.push(stack.shift())
+    if (targetStack[0] === '*') {
+      resolved.push(sourceStack.shift())
       targetStack.shift()
-    } else if (targetStack[0] === "*") {
-      if (stack.length === targetStack.length) {
-        targetStack.shift()
-      }
-      resolved.push(stack.shift())
     } else {
       resolved.push(targetStack.shift())
-
+      sourceStack.shift()
     }
   }
   return scheme.concat(resolved.join("/"))
@@ -167,7 +162,6 @@ document.getElementById('generateValues').addEventListener('click', async () => 
     userData: urlWithKV
   })
   init()
-  console.log({urlWithKV})
 
 });
 
@@ -177,46 +171,43 @@ document.getElementById('reset').addEventListener('click', () => {
 });
 
 
-function isInPopup () {
+function isInPopup() {
   return (typeof chrome != undefined && chrome.extension) ?
     chrome.extension.getViews({ type: "popup" }).length > 0 : null;
 }
 
 function applyMask(url, mask) {
   // const scheme = url.slice(0, url.indexOf(':') + 3)
-  const urlSegments = url.slice(url.indexOf(':') + 3).slice('/')
-  const maskSegments = url.slice('/')
+  const urlSegments = url.slice(url.indexOf(':') + 3).split('/')
+  const maskSegments = mask.split('/')
   const res = []
 
-  while (maskSegments.length) {
+  while (urlSegments.length) {
     if (maskSegments[0] === '<any>') {
       res.push(urlSegments.shift())
       maskSegments.shift()
       continue
     }
-    if (maskSegments[0] === '*') {
-      res.push(maskSegments.shift())
-    }
-
+    // mask is "*" or string literal
+    res.push(maskSegments.shift())
+    urlSegments.shift()
   }
+  return res.join('/')
 }
 async function init() {
   console.log('pop up open: ', isInPopup())
   const textarea = document.getElementById('jsonInput');
   const userData = await getStorageData('userData')
-  const hostUrl = 'main.otd.dev.intern/anamneses/5abdbdfa-ef9f-467f-98a3-ca33bb9317e9/lengths-to-ground'
-  const urlMask = '*/*/*/<any>'
+  const urlMask = '*/<any>'
 
-  console.log({userData})
   if (userData) {
     const maskedData = Object.fromEntries(
-      Object.entries(userData).map((url, kv) => {
+      Object.entries(userData).map(([url, kv]) => {
         return [applyMask(url, urlMask), kv]
       })
     )
-    textarea.innerText = JSON.stringify(userData, null, 2)
+    textarea.innerText = JSON.stringify(maskedData, null, 2)
   }
-  
 }
 
 init()
