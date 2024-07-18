@@ -20,6 +20,9 @@ function resolveWildcardUrl(href, target) {
   return scheme.concat(resolved.join("/"))
 }
 
+document.getElementById('openInTab').addEventListener('click', () => {
+  chrome.tabs.create({url: 'popup.html'})
+})  
 
 
 document.getElementById('saveButton').addEventListener('click', async () => {
@@ -111,6 +114,10 @@ document.getElementById('viewEvents').addEventListener('click', async () => {
   console.log(JSON.stringify(userEvents, null, 2));
 });
 
+document.getElementById('urlMask').addEventListener('change', (e) => {
+  const urlMask = e.target.value
+  chrome.storage.local.set({urlMask}, () => {})
+})
 
 document.getElementById('startRecordButton').addEventListener('click', () => {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -178,6 +185,9 @@ function isInPopup() {
 
 function applyMask(url, mask) {
   // const scheme = url.slice(0, url.indexOf(':') + 3)
+  if (!mask) {
+    return url
+  }
   const urlSegments = url.slice(url.indexOf(':') + 3).split('/')
   const maskSegments = mask.split('/')
   const res = []
@@ -195,10 +205,9 @@ function applyMask(url, mask) {
   return res.join('/')
 }
 async function init() {
-  console.log('pop up open: ', isInPopup())
   const textarea = document.getElementById('jsonInput');
   const userData = await getStorageData('userData')
-  const urlMask = '*/<any>'
+  const urlMask = await getStorageData('urlMask')
 
   if (userData) {
     const maskedData = Object.fromEntries(
@@ -206,7 +215,12 @@ async function init() {
         return [applyMask(url, urlMask), kv]
       })
     )
-    textarea.innerText = JSON.stringify(maskedData, null, 2)
+    textarea.value = JSON.stringify(maskedData, null, 2)
+  }
+
+  const urlMaskInput = document.getElementById('urlMask')
+  if (urlMask) {
+    urlMaskInput.value = urlMask
   }
 }
 
