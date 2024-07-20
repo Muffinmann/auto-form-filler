@@ -74,9 +74,10 @@ async function replayActions(savedActions, lastActionTimeStamp = 0) {
   const action = savedActions.shift()
 
   const timeCost = action.timeStamp - lastActionTimeStamp
-
   let speedFactor = 1
-  await sleep(timeCost / speedFactor)
+  if (lastActionTimeStamp !== 0) { // no sleep for the first action
+    await sleep(timeCost / speedFactor)
+  }
 
   const element = findElement(action.target);
 
