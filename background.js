@@ -1,10 +1,11 @@
 // Handle tab creation and navigation.
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status === 'complete' && /^http/.test(tab.url)) {
-    chrome.scripting.executeScript({
-      target: { tabId: tabId },
-      files: ['content.js']
-    });
+    // TODO: should not run the script if it is in replay
+    // chrome.scripting.executeScript({
+    //   target: { tabId: tabId },
+    //   files: ['content.js']
+    // });
   }
 });
 
@@ -25,3 +26,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
+// chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+//   if (request.action === "saveActions") {
+//     chrome.storage.local.set({actions: request.actions}, () => {
+//       console.log("Actions saved");
+//     });
+//   } else if (request.action === "getActions") {
+//     chrome.storage.local.get(['actions'], (result) => {
+//       sendResponse({actions: result.actions});
+//     });
+//     return true;
+//   }
+// });

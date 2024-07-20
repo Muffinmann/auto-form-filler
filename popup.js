@@ -21,8 +21,8 @@ function resolveWildcardUrl(href, target) {
 }
 
 document.getElementById('openInTab').addEventListener('click', () => {
-  chrome.tabs.create({url: 'popup.html'})
-})  
+  chrome.tabs.create({ url: 'popup.html' })
+})
 
 
 document.getElementById('saveButton').addEventListener('click', async () => {
@@ -116,7 +116,7 @@ document.getElementById('viewEvents').addEventListener('click', async () => {
 
 document.getElementById('urlMask').addEventListener('change', (e) => {
   const urlMask = e.target.value
-  chrome.storage.local.set({urlMask}, () => {})
+  chrome.storage.local.set({ urlMask }, () => { })
 })
 
 document.getElementById('startRecordButton').addEventListener('click', () => {
@@ -177,6 +177,12 @@ document.getElementById('reset').addEventListener('click', () => {
   alert('Storage cleared!')
 });
 
+
+document.getElementById('replay').addEventListener('click', async () => {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.tabs.sendMessage(tabs[0].id, { action: "replay" });
+  });
+});
 
 function isInPopup() {
   return (typeof chrome != undefined && chrome.extension) ?
