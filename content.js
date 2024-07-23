@@ -79,17 +79,24 @@ async function replayActions(savedActions, lastActionTimeStamp = 0) {
     await sleep(timeCost / speedFactor)
   }
 
-  const element = findElement(action.target);
+  const element = findElement(action);
 
 
   if (element) {
     highlightElement(element);
     if (action.eventType === 'click') {
-      element.click();
+      if ('click' in element) {
+        element.click()
+      } else {
+        element.dispatchEvent(new Event('click', { bubbles: true }));
+      }
     } else if (action.eventType === 'input') {
       element.value = action.value;
       element.dispatchEvent(new Event('input', { bubbles: true }));
     }
+  } else {
+    console.log('Cannot find element: ', action.target)
+    return;
   }
 
   if (savedActions.length) {
@@ -99,14 +106,31 @@ async function replayActions(savedActions, lastActionTimeStamp = 0) {
   }
 }
 
-function findElement(outerHTML) {
-  const elements = document.getElementsByTagName('*');
-  for (let element of elements) {
-    if (element.outerHTML === outerHTML) {
-      return element;
+
+function findElement(elementProfile) {
+  const {className, tagName, innerText, target} = elementProfile
+  if (className) {
+    const cElements = document.getElementsByClassName(className)
+    for (const cElement of cElements) {
+      if (innerText !== undefined && cElement.innerText.trim() === innerText.trim()) {
+        return cElement
+      }
+      if (cElement.outerHTML === target) {
+        return cElement
+      }
+    }
+  } else {
+    const elements = document.getElementsByTagName(tagName)
+    for (const element of elements) {
+      if (innerText !== undefined && element.innerText.trim() === innerText.trim()) {
+        return element
+      }
+      if (element.outerHTML === target) {
+        return element
+      }
     }
   }
-  return null;
+  return null
 }
 
 function highlightElement(element) {
@@ -114,6 +138,7 @@ function highlightElement(element) {
   const highlight = document.createElement('div');
   highlight.id = 'replay-highlight';
   highlight.style.position = 'absolute';
+  highlight.style.zIndex = '999';
   highlight.style.border = '2px solid red';
   highlight.style.borderRadius = '50%';
   highlight.style.pointerEvents = 'none';

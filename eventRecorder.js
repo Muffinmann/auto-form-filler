@@ -7,7 +7,7 @@ function recordEvent(event, type) {
         eventType: type,
         tagName: element.tagName,
         id: element.id,
-        className: element.className,
+        className: element.getAttribute('class'), // svg.className returns an instance of SVGAnimatedString: https://developer.mozilla.org/en-US/docs/Web/API/Element/className#notes
         name: element.name,
         value: element.value || null,
         innerText: element.innerText,
