@@ -9,44 +9,48 @@ async function selectInputs(MAX_RETRY = 5, retryCount = 0) {
   }
 }
 
-chrome.storage.local.get('userData', async (data) => {
-  const url = window.location.href;
+async function fillInputFields(inputs, data) {
   const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
   const nativeInputCheckedSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'checked').set;
 
-  if (data.userData && (url in data.userData)) {
-    const userData = data.userData[url];
-    const inputs = await selectInputs()
+  inputs.forEach(input => {
+    if (!input) {
+      console.log('input unmounted: ', input)
+      return;
+    }
+    const name = input.name;
 
-    inputs.forEach(input => {
-      if (!input) {
-        console.log('input unmounted: ', input)
-        return;
-      }
-
-      const name = input.name;
-
-      if (userData.hasOwnProperty(name)) {
-        const value = userData[name];
-        if (Array.isArray(value)) {
-          if (input.type === 'checkbox' && value.includes(input.value)) {
-            nativeInputCheckedSetter.call(input, true)
-          }
-        } else {
-          if (input.type === 'radio' && input.value === value) {
-            nativeInputCheckedSetter.call(input, true)
-          } else {
-            nativeInputValueSetter.call(input, value)
-          }
+    if ((name in data)) {
+      const value = data[name];
+      if (Array.isArray(value)) {
+        if (input.type === 'checkbox' && value.includes(input.value)) {
+          nativeInputCheckedSetter.call(input, true)
         }
-
-        const event = new Event('input', { bubbles: true });
-        input.dispatchEvent(event);
+      } else {
+        if (input.type === 'radio' && input.value === value) {
+          nativeInputCheckedSetter.call(input, true)
+        } else {
+          nativeInputValueSetter.call(input, value)
+        }
       }
-    });
-  }
-});
 
+      const event = new Event('input', { bubbles: true });
+      input.dispatchEvent(event);
+    }
+  });
+
+}
+
+function fillUserData() {
+  chrome.storage.local.get('userData', async (data) => {
+    const url = window.location.href;
+    if (data.userData && (url in data.userData)) {
+      const userData = data.userData[url];
+      const inputs = await selectInputs()
+      await fillInputFields(inputs, userData)
+    }
+  });
+}
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "replay") {

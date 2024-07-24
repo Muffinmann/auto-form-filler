@@ -78,13 +78,16 @@ async function navigateAndFill(urls) {
     const url = urls.shift()
     console.log({ activeTab, url })
     if (url) {
-      chrome.tabs.update(activeTab.id, { url: url }, (updatedTab) => {
+      chrome.tabs.update(activeTab.id, { url: url }, () => {
         chrome.tabs.onUpdated.addListener(function listener(tabId, changeInfo) {
           if (tabId === activeTab.id && changeInfo.status === 'complete') {
-            chrome.scripting.executeScript({
-              target: { tabId: tabId },
-              files: ['content.js']
-            });
+            // chrome.scripting.executeScript({
+            //   target: { tabId: tabId },
+            //   files: ['content.js']
+            // });
+            chrome.runtime.sendMessage({
+              action: "submit",
+            })
             chrome.tabs.onUpdated.removeListener(listener);
             navigateAndFill(urls)
           }
@@ -184,10 +187,6 @@ document.getElementById('replay').addEventListener('click', async () => {
   });
 });
 
-function isInPopup() {
-  return (typeof chrome != undefined && chrome.extension) ?
-    chrome.extension.getViews({ type: "popup" }).length > 0 : null;
-}
 
 function applyMask(url, mask) {
   // const scheme = url.slice(0, url.indexOf(':') + 3)
