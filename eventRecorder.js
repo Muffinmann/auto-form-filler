@@ -1,3 +1,26 @@
+function generateSelector(element) {
+    if (element.id) {
+        return '#' + CSS.escape(element.id);
+    }
+    
+    let path = [];
+    while (element.nodeType === Node.ELEMENT_NODE) {
+        let selector = element.nodeName.toLowerCase();
+        if (element.parentNode) {
+          let sameTagSiblings = Array.from(element.parentNode.children)
+              .filter(e => e.nodeName === element.nodeName);
+          if (sameTagSiblings.length > 1) {
+              selector += ':nth-child(' + (Array.from(element.parentNode.children).indexOf(element) + 1) + ')';
+          }
+          path.unshift(selector);
+          element = element.parentNode;
+        } else {
+          break
+        }
+    }
+    return path.join(' > ');
+}
+
 function recordEvent(event, type) {
   chrome.storage.local.get('recording', (data) => {
     if (data.recording) {
@@ -15,7 +38,7 @@ function recordEvent(event, type) {
         src: element.src || null,
         timeStamp: event.timeStamp,
         inputType: element.type,
-        target: element.outerHTML,
+        target: generateSelector(element),
         x: element.clientX,
         y: element.clientY,
       };

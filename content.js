@@ -48,7 +48,6 @@ chrome.storage.local.get('userData', async (data) => {
 });
 
 
-
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "replay") {
     chrome.storage.local.get('userEvents', (data) => {
@@ -79,7 +78,7 @@ async function replayActions(savedActions, lastActionTimeStamp = 0) {
     await sleep(timeCost / speedFactor)
   }
 
-  const element = findElement(action);
+  const element = document.querySelector(action.target);
 
 
   if (element) {
@@ -104,33 +103,6 @@ async function replayActions(savedActions, lastActionTimeStamp = 0) {
   } else {
     removeHighlight();
   }
-}
-
-
-function findElement(elementProfile) {
-  const {className, tagName, innerText, target} = elementProfile
-  if (className) {
-    const cElements = document.getElementsByClassName(className)
-    for (const cElement of cElements) {
-      if (innerText !== undefined && cElement.innerText.trim() === innerText.trim()) {
-        return cElement
-      }
-      if (cElement.outerHTML === target) {
-        return cElement
-      }
-    }
-  } else {
-    const elements = document.getElementsByTagName(tagName)
-    for (const element of elements) {
-      if (innerText !== undefined && element.innerText.trim() === innerText.trim()) {
-        return element
-      }
-      if (element.outerHTML === target) {
-        return element
-      }
-    }
-  }
-  return null
 }
 
 function highlightElement(element) {
